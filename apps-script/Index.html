@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html>
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Public+Sans:wght@400;600;700&family=IBM+Plex+Mono:wght@500&family=Quicksand:wght@700&family=Fraunces:ital,wght@1,500&display=swap">
+<style>
+/* Default look: Night boutique. Ten white-based colorways below swap the tokens. */
+:root{--bg:#12100E;--surface:#1C1916;--raise:#26221D;--line:#3A332B;--text:#EFE6D2;--muted:#A89C84;--gold:#D4AE62;--gold-ink:#1A140A;--gold-text:#D4AE62;--ok:#6E8B6A;--warn:#E08A6C;
+  --fd:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;--fb:"Public Sans",system-ui,sans-serif;--fm:"IBM Plex Mono",ui-monospace,monospace;color-scheme:dark}
+[data-theme]:not([data-theme="night"]){--bg:#FFFFFF;--ok:#8DB596;--warn:#B4482B;color-scheme:light}
+[data-theme="cb"]{--surface:#FDF8F6;--raise:#F8EEEA;--line:#EEDFD9;--text:#2B2326;--muted:#6E6265;--gold:#D9BC82;--gold-ink:#2A1F0B;--gold-text:#8A6A26;--hi:#EDB3C0;--hi-text:#B04E66}
+[data-theme="blush"]{--surface:#FDF5F6;--raise:#F8E8EB;--line:#EED7DC;--text:#2B2023;--muted:#6F5F64;--gold:#E7A3B1;--gold-ink:#2B1418;--gold-text:#A8475C}
+[data-theme="champagne"]{--surface:#FCF9F3;--raise:#F5EEDF;--line:#EADFC8;--text:#2A251C;--muted:#6E6556;--gold:#D2B06E;--gold-ink:#241A07;--gold-text:#8A6A26}
+[data-theme="lilac"]{--surface:#F8F5FD;--raise:#EEE8FA;--line:#DDD3F2;--text:#241F2E;--muted:#655E73;--gold:#B9A3E6;--gold-ink:#1C1230;--gold-text:#6C4DB3}
+[data-theme="sage"]{--surface:#F5F8F5;--raise:#E8F0E9;--line:#D3E0D5;--text:#1F2621;--muted:#5C6860;--gold:#A3C4AC;--gold-ink:#142019;--gold-text:#4A7357}
+[data-theme="coral"]{--surface:#FFF6F3;--raise:#FDE8E1;--line:#F5D3C8;--text:#2B1F1C;--muted:#6F605B;--gold:#F4A08A;--gold-ink:#2A120A;--gold-text:#B4482B}
+[data-theme="fuchsia"]{--surface:#FDF4F8;--raise:#FAE3EE;--line:#F1CFDF;--text:#2A1C23;--muted:#6E5D66;--gold:#C23A7D;--gold-ink:#FFFFFF;--gold-text:#B0306E}
+[data-theme="aqua"]{--surface:#F2FAF9;--raise:#E0F3F1;--line:#C8E6E2;--text:#1A2625;--muted:#586B69;--gold:#7FCAC3;--gold-ink:#0D2422;--gold-text:#2D7D76}
+[data-theme="mauve"]{--surface:#FAF5F7;--raise:#F1E6EB;--line:#E3D2DA;--text:#2A2226;--muted:#6B5F65;--gold:#C99AAD;--gold-ink:#22121A;--gold-text:#8A5268}
+[data-theme="powder"]{--surface:#F5F8FD;--raise:#E6EEF9;--line:#D2DFF1;--text:#1D2330;--muted:#5D6575;--gold:#A6C4EA;--gold-ink:#0E1C30;--gold-text:#3E6BA8}
+[data-theme="cherry"]{--surface:#FFF5F5;--raise:#FCE4E5;--line:#F3CFD1;--text:#2A1C1D;--muted:#6E5D5F;--gold:#C8323C;--gold-ink:#FFFFFF;--gold-text:#B02A33}
+
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 var(--fb)}
+#app{max-width:560px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;padding:0 max(18px,env(safe-area-inset-left)) 40px}
+button{font-family:inherit;color:inherit;cursor:pointer}
+a{color:var(--gold-text)}
+:focus-visible{outline:2px solid var(--gold-text);outline-offset:2px}
+.top{display:flex;justify-content:space-between;align-items:center;padding:18px 0 10px;gap:10px}
+.brand{background:none;border:0;padding:0;font:700 34px/1 Quicksand,var(--fb);letter-spacing:-.02em;color:var(--text)}
+.brand .i{position:relative;display:inline-block}
+.brand .tit{position:absolute;left:50%;top:.06em;width:.24em;height:.24em;margin-left:-.12em;border-radius:50%;background:var(--hi,var(--gold))}
+.pill{background:none;border:1px solid var(--line);border-radius:999px;padding:6px 12px;font:500 12px var(--fm);color:var(--muted)}
+.icon{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--surface);display:inline-flex;align-items:center;justify-content:center;color:var(--text)}
+.menu{position:sticky;top:0;z-index:5;background:var(--bg);display:flex;border-bottom:1px solid var(--line);margin:0 0 18px}
+.menu button{flex:1 1 auto;background:none;border:0;padding:12px 6px 11px;font-size:12px;font-weight:700;letter-spacing:.08em;white-space:nowrap;text-transform:uppercase;color:var(--muted);border-bottom:3px solid transparent}
+.menu button[aria-current="page"]{color:var(--text);border-bottom-color:var(--hi,var(--gold))}
+.d{font-family:var(--fd);font-weight:800;text-transform:uppercase;line-height:.95;margin:0;letter-spacing:.02em}
+.lb{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.m{font-family:var(--fm)}
+.muted{color:var(--muted)}
+.btn{display:block;width:100%;background:var(--gold);color:var(--gold-ink);border:0;border-radius:2px;padding:15px;font:700 13px var(--fb);letter-spacing:.14em;text-transform:uppercase;text-align:center;text-decoration:none}
+.btn.ghost{background:transparent;color:var(--gold-text);border:1px solid var(--gold-text)}
+.link{align-self:flex-start;text-align:left;background:none;border:0;padding:8px 0;color:var(--muted);font-size:13px;font-weight:600;text-decoration:underline}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:16px}
+.seg{display:flex;border:1px solid var(--line);border-radius:2px;overflow:hidden}
+.seg button{flex:1;border:0;background:transparent;padding:12px;font-weight:600;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--text);color:var(--bg)}
+.err{color:var(--warn);font-size:13px;min-height:1.2em}
+
+/* today */
+.quote{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:26px 22px 22px}
+.qm{display:block;font:italic 500 80px/.6 Fraunces,Georgia,serif;color:var(--hi,var(--gold));margin-top:18px;height:34px}
+.quote blockquote{margin:0 0 18px;font:italic 500 30px/1.25 Fraunces,Georgia,serif;color:var(--text);text-wrap:balance}
+
+/* steppers */
+.stepper{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:10px}
+.stepper .val{font:500 44px/1 var(--fm);text-align:center;flex:1;font-variant-numeric:tabular-nums}
+.stepper .val small{font-size:18px;color:var(--muted);margin-left:4px}
+.sb{width:60px;height:60px;border-radius:50%;border:1px solid var(--gold-text);background:var(--bg);color:var(--gold-text);font:600 28px/1 var(--fb);touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.sb:active{background:var(--gold);color:var(--gold-ink)}
+.sb.sm{width:40px;height:40px;font-size:22px}
+
+/* stepper flow (16) */
+.bars{display:flex;gap:6px;padding-top:4px}
+.bars span{flex:1;height:3px;background:var(--line)}
+.bars span.on{background:var(--gold)}
+.fig{display:flex;justify-content:center;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:4px;height:220px;margin:18px 0}
+.body{stroke:var(--text)}
+.band{stroke:var(--line);stroke-width:3}
+.band.on{stroke:var(--hi-text,var(--gold-text));stroke-width:5}
+
+/* body map (09) */
+.map{position:relative;height:300px;margin-top:8px}
+.map svg{position:absolute;left:50%;top:6px;transform:translateX(-50%)}
+.call{position:absolute;background:var(--raise);border:1px solid var(--line);border-radius:4px;padding:6px 10px;text-align:left;width:84px;z-index:1}
+.call.open{border:2px solid var(--hi-text,var(--gold-text));background:var(--surface)}
+.editbar{display:flex;flex-direction:column;gap:8px;margin:4px 0 14px;padding:12px;border:1px solid var(--line);border-radius:4px;background:var(--bg)}
+.call .v{font:500 19px var(--fm);display:block;font-variant-numeric:tabular-nums;white-space:nowrap}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.size{border:1px solid var(--line);border-radius:2px;padding:8px 12px;display:flex;flex-direction:column}
+.size b{font:800 26px/1 var(--fd);color:var(--hi-text,var(--gold-text))}
+
+/* tiles (13) */
+.tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.tile{border:1px solid var(--line);background:var(--surface);border-radius:4px;padding:16px;height:120px;display:flex;flex-direction:column;justify-content:space-between;text-align:left}
+.tile:hover{border-color:var(--gold-text)}
+.tile .d{font-size:24px;white-space:nowrap}
+.tile.wide{grid-column:span 2;height:90px;background:var(--gold);color:var(--gold-ink);border-color:var(--gold)}
+.tile.wide .m{color:var(--gold-ink)}
+
+/* filters + grid (01) */
+.row-scroll{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.wrap{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:transparent;border-radius:999px;padding:8px 14px;font-size:13px;font-weight:600;color:var(--muted);white-space:nowrap;min-height:38px}
+.chip[aria-pressed="true"]{background:var(--text);color:var(--bg);border-color:var(--text)}
+.chip .n{font:500 11px var(--fm);opacity:.75;margin-left:6px}
+.searchrow{display:flex;gap:8px}
+.searchrow input{flex:1;min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:2px;padding:12px;font:16px var(--fb);color:var(--text)}
+.searchrow button{background:var(--text);color:var(--bg);border:0;border-radius:2px;padding:0 16px;font-weight:700}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 12px}
+.item{background:none;border:0;padding:0;text-align:left;display:flex;flex-direction:column;gap:4px;min-width:0;position:relative}
+.ph{aspect-ratio:3/4;width:100%;object-fit:cover;background:var(--raise);border-radius:3px;display:block}
+.item .t{font-size:14px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.item .row{display:flex;justify-content:space-between;align-items:center;gap:6px}
+.tag{background:var(--gold);color:var(--gold-ink);font:500 11px var(--fm);padding:2px 6px;border-radius:2px;white-space:nowrap}
+.new{position:absolute;top:8px;left:8px;background:var(--hi,var(--bg));color:var(--text);font:700 10px var(--fb);letter-spacing:.12em;text-transform:uppercase;padding:4px 7px;border-radius:2px}
+.skel{background:var(--raise);border-radius:3px;aspect-ratio:3/4}
+.section{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+
+/* fit meter (21) */
+.meter{height:6px;border-radius:3px;background:linear-gradient(90deg,var(--line) 0 33%,var(--ok) 33% 67%,var(--line) 67%);position:relative;margin-top:8px}
+.dot{position:absolute;top:-6px;width:18px;height:18px;margin-left:-9px;border-radius:50%;background:var(--hi-text,var(--gold-text));border:3px solid var(--surface)}
+.scale{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:6px}
+
+/* theme sheet */
+.sheet{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center}
+.sheet-in{background:var(--bg);color:var(--text);width:100%;max-width:560px;border-radius:14px 14px 0 0;padding:20px 18px calc(24px + env(safe-area-inset-bottom));max-height:85vh;overflow:auto}
+.themes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}
+.th{display:flex;align-items:center;gap:10px;border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:10px;text-align:left;font-weight:600}
+.th[aria-pressed="true"]{border:2px solid var(--gold-text)}
+.sw{width:34px;height:34px;border-radius:50%;flex-shrink:0;border:1px solid rgba(0,0,0,.12)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+const app = document.getElementById("app");
+const LS = {
+  get(k){ try { return JSON.parse(localStorage.getItem(k)); } catch(e) { return null; } },
+  set(k,v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {} }
+};
+
+/* ---------- constants ---------- */
+const THEMES = [
+  ["cb","Champagne & Blush","#FFFFFF","#D9BC82","#EDB3C0"],
+  ["night","Night boutique","#12100E","#D4AE62"],
+  ["blush","Blush","#FFFFFF","#E7A3B1"],["champagne","Champagne","#FFFFFF","#D2B06E"],
+  ["lilac","Lilac","#FFFFFF","#B9A3E6"],["sage","Sage","#FFFFFF","#A3C4AC"],
+  ["coral","Coral","#FFFFFF","#F4A08A"],["fuchsia","Fuchsia","#FFFFFF","#C23A7D"],
+  ["aqua","Aqua","#FFFFFF","#7FCAC3"],["mauve","Mauve","#FFFFFF","#C99AAD"],
+  ["powder","Powder blue","#FFFFFF","#A6C4EA"],["cherry","Cherry","#FFFFFF","#C8323C"]
+];
+const STYLES = [["casual","Casual"],["business","Business"],["formal","Formal"],["streetwear","Streetwear"],["athleisure","Athleisure"],
+  ["minimalist","Minimalist"],["boho","Boho"],["preppy","Preppy"],["vintage","Vintage"],["edgy","Edgy"]];
+const SEASONS = [["fall","Fall"],["winter","Winter"],["spring","Spring"],["summer","Summer"]];
+// Original daily lines, one per day of the year (rotates).
+const QUOTES = [
+  "The right fit isn't a number. It's how you feel walking out the door.",
+  "You were never the problem. The size chart was.",
+  "Dress for the day you want, not the size you think you should be.",
+  "Confidence looks good in every size.",
+  "Wear the thing you've been saving for a special day. Today counts.",
+  "Your body is not a before picture.",
+  "Find clothes that fit your life, not the other way around.",
+  "Comfort and beauty were never meant to compete.",
+  "Take up space. Your outfit should help.",
+  "Measure yourself with a tape, never with a comparison.",
+  "Style is how you introduce yourself without saying a word.",
+  "Some days call for heels, some for sneakers. Both are you.",
+  "Be kind to the woman in the mirror. She's doing her best.",
+  "A great fit is a small act of self-respect.",
+  "You don't owe anyone a smaller version of yourself.",
+  "Pick the color that makes you smile. That's the right one.",
+  "Soft can be strong. Ask any cashmere sweater.",
+  "Today, wear something that feels like a yes.",
+  "Your favorite outfit is the one you forget you're wearing.",
+  "Every body deserves a good pair of jeans.",
+  "Show up as you are. Then dress like you mean it.",
+  "The best accessory is the way you carry yourself.",
+  "Trends come and go. Feeling good in your clothes stays.",
+  "You're allowed to change your style as often as you change your mind.",
+  "Let the clothes do the adjusting. You're already enough.",
+  "Real women have real measurements. Wear yours proudly.",
+  "Start with what fits. Everything else is details.",
+  "Bold or quiet, your style is yours to choose.",
+  "Getting dressed is a gift to yourself, not a test.",
+  "Growth looks good on you, in every sense.",
+  "Walk in like the outfit was made for you. Today it was."
+];
+const CAT_NAMES = { all: "Everything", tops: "Tops", bottoms: "Bottoms", outerwear: "Outerwear", dresses: "Dresses", under100: "Under $100" };
+const PRICES = [[0,"Any price"],[50,"Under $50"],[100,"Under $100"],[200,"Under $200"]];
+const DEF = { m: { chest: 40, waist: 33, hips: 39, inseam: 32 }, w: { chest: 36, waist: 29, hips: 39, inseam: 30 } };
+const LIM = { chest: [26, 60], waist: [20, 56], hips: [28, 62], inseam: [22, 38] };
+const nowSeason = (() => { const mo = new Date().getMonth(); return mo >= 8 && mo <= 10 ? "fall" : (mo === 11 || mo <= 1) ? "winter" : mo <= 4 ? "spring" : "summer"; })();
+
+/* ---------- state ---------- */
+const saved = LS.get("fm_state") || {};
+const S = {
+  g: saved.g || "m", unit: saved.unit || "in", m: saved.m || null, theme: LS.get("fm_theme2") || "cb",
+  view: "today", prev: "search", step: 0, editing: null, sheet: false,
+  byCat: null, counting: false, item: null,
+  search: { cat: "all", q: "", styles: [], max: 0 },
+  newf: { season: nowSeason, cat: "all" },
+  res: { search: null, new: null }, loading: { search: false, new: false }, err: { search: "", new: "" }
+};
+const save = () => LS.set("fm_state", { g: S.g, unit: S.unit, m: S.m });
+const hasM = () => !!(S.m && ["chest","waist","hips","inseam"].every(k => S.m[k] != null));
+document.documentElement.dataset.theme = S.theme;
+
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt = v => v == null ? "—" : (S.unit === "in" ? (+v).toFixed(1).replace(/\.0$/, "") : String(Math.round(v * 2.54)));
+const uLabel = () => S.unit === "in" ? "in" : "cm";
+const clamp = x => Math.max(0.04, Math.min(0.96, x));
+
+/* ---------- sizing ---------- */
+const MT=[[35,"XS"],[38.5,"S"],[41.5,"M"],[45,"L"],[49,"XL"],[53,"XXL"],[999,"3XL"]];
+const MB=[[29,"XS"],[31.5,"S"],[34.5,"M"],[37.5,"L"],[41,"XL"],[45,"XXL"],[999,"3XL"]];
+const WT=[[32.5,"XXS"],[34,"XS"],[36,"S"],[38,"M"],[40.5,"L"],[43.5,"XL"],[999,"XXL"]];
+const WB=[[35,"XXS"],[36.5,"XS"],[38.5,"S"],[40.5,"M"],[43,"L"],[46,"XL"],[999,"XXL"]];
+const DRESS=[[0,32,24,34.5],[2,33,25,35.5],[4,34,26,36.5],[6,35,27,37.5],[8,36,28,38.5],[10,37.5,29.5,40],[12,39,31,41.5],[14,41,33,43.5],[16,43,35,45.5],[18,45,37,47.5],[20,47,39,49.5]];
+function pick(v, t){ if (v == null) return null; for (const [max, s] of t) if (v < max) return s; return t[t.length-1][1]; }
+function profile(){
+  const m = S.m || {}, P = { g: S.g };
+  if (S.g === "m") {
+    P.top = pick(m.chest, MT); P.bottom = pick(m.waist, MB);
+    P.waist = m.waist == null ? null : Math.round(m.waist);
+    P.jacket = m.chest == null ? null : Math.round(m.chest / 2) * 2;
+  } else {
+    P.top = pick(m.chest, WT); P.bottom = pick(m.hips, WB);
+    const fit = (i, v) => { if (v == null) return 0; for (const r of DRESS) if (v <= r[i]) return r[0]; return 20; };
+    P.dress = Math.max(fit(1, m.chest), fit(2, m.waist), fit(3, m.hips));
+    P.jean = m.waist == null ? null : Math.max(22, Math.min(36, Math.round(m.waist - 0.5)));
+  }
+  P.inseam = m.inseam == null ? 31 : m.inseam;
+  return P;
+}
+function sizeList(){
+  const P = profile();
+  if (S.g === "m") return [["Tops", P.top], ["Pants", P.waist && `${P.waist}×${Math.round(P.inseam)}`], ["Jacket", P.jacket], ["Bottoms", P.bottom]];
+  return [["Tops", P.top], ["Dress", P.dress], ["Jeans", P.jean], ["Length", P.inseam < 29 ? "Petite" : P.inseam > 32.5 ? "Tall" : "Regular"]];
+}
+const chipsHTML = () => sizeList().filter(x => x[1]).map(([k, v]) => `<div class="size"><span class="lb">${k}</span><b>${esc(v)}</b></div>`).join("");
+const pillText = () => hasM() ? sizeList().filter(x => x[1]).slice(0, 2).map(x => x[1]).join(" · ") : "";
+
+/* fit meter: where your body sits inside the size you'd order */
+function bracket(t, letter){
+  const i = t.findIndex(r => r[1] === letter); if (i < 0) return null;
+  const hi = t[i][0] === 999 ? t[i-1][0] + 4 : t[i][0];
+  const lo = i === 0 ? hi - 3 : t[i-1][0];
+  return [lo, hi];
+}
+function fitRows(item){
+  const m = S.m, rows = [];
+  const girth = (name, v, lo, hi) => rows.push({ name, x: clamp((v - lo) / (hi - lo)), a: "Roomy", b: "Snug" });
+  const near = (name, v, target, span, a, b) => rows.push({ name, x: clamp(0.5 + (v - target) / span), a, b });
+  String(item.sizes[0] || "").split(" · ").forEach((p, i) => {
+    const up = p.toUpperCase().trim();
+    let mm = up.match(/^(\d{2})\s*W?\s*[X\/]\s*(\d{2})/);
+    if (mm) { near("Waist", m.waist, +mm[1], 2, "Roomy", "Snug"); near("Length", m.inseam, +mm[2], 2, "Long", "Short"); return; }
+    mm = up.match(/^(XXXS|XXS|2XS|XS|XXXL|3XL|2XL|XXL|XL|S|M|L|SMALL|MEDIUM|LARGE)\b/);
+    if (mm) {
+      const L = ({SMALL:"S",MEDIUM:"M",LARGE:"L","2XL":"XXL","XXXL":"3XL","2XS":"XXS"})[mm[1]] || mm[1];
+      if (item.cat === "bottoms") {
+        const t = S.g === "m" ? MB : WB, v = S.g === "m" ? m.waist : m.hips, br = bracket(t, L);
+        if (br) girth(S.g === "m" ? "Waist" : "Hips", v, br[0], br[1]);
+      } else {
+        const t = S.g === "m" ? MT : WT, br = bracket(t, L);
+        if (br) girth(S.g === "m" ? "Chest" : "Bust", m.chest, br[0], br[1]);
+      }
+      return;
+    }
+    const n = parseFloat(up);
+    if (isNaN(n)) return;
+    if (i > 0 && n >= 25 && n <= 38) { near("Length", m.inseam, n, 2, "Long", "Short"); return; }
+    if (S.g === "w" && n <= 20) {
+      const r = DRESS.find(x => x[0] === n);
+      if (r) { near("Bust", m.chest, r[1], 2, "Roomy", "Snug"); near("Waist", m.waist, r[2], 2, "Roomy", "Snug"); near("Hips", m.hips, r[3], 2, "Roomy", "Snug"); }
+      return;
+    }
+    if (S.g === "w") { near("Waist", m.waist - 0.5, n, 2, "Roomy", "Snug"); return; }
+    if (item.cat === "tops" || item.cat === "outerwear") { near("Chest", m.chest, n, 4, "Roomy", "Snug"); return; }
+    near("Waist", m.waist, n, 2, "Roomy", "Snug");
+  });
+  return rows;
+}
+const verdict = r => r.x < 0.33 ? r.a : r.x > 0.67 ? r.b : "Right on";
+
+/* ---------- pieces ---------- */
+function figure(hl, w, h){
+  const band = (k, d) => `<path class="band${hl === k ? " on" : ""}" d="${d}"/>`;
+  return `<svg width="${w}" height="${h}" viewBox="0 0 120 300" fill="none" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+    <g class="body"><circle cx="60" cy="24" r="17"/><path d="M60 42v118M60 64l-40 64M60 64l40 64M60 160l-24 128M60 160l24 128"/></g>
+    ${band("chest","M36 86h48")}${band("waist","M40 118h40")}${band("hips","M36 152h48")}${band("inseam","M64 166l18 118")}</svg>`;
+}
+const palette = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.5-.8 1.2-1.6-.4-1 .2-2.4 1.5-2.4H17a4 4 0 0 0 4-4c0-5.5-4-10-9-10z"/><circle cx="7.5" cy="11" r="1.2"/><circle cx="10" cy="7" r="1.2"/><circle cx="14.5" cy="7" r="1.2"/></svg>`;
+function header(){
+  const p = pillText();
+  const menu = S.view === "onboard" ? "" : `<nav class="menu" aria-label="Main">
+      ${[["today","Today"],["fit","Fit"],["search","Search"],["new","New Arrivals"]].map(([v, n]) => `<button data-act="go" data-v="${v}" ${(S.view === v || (S.view === "detail" && S.prev === v)) ? 'aria-current="page"' : ""}>${n}</button>`).join("")}
+    </nav>`;
+  return `<header class="top"><button class="brand" data-act="go" data-v="today" aria-label="FitMe home">f<span class="i">ı<span class="tit"></span></span>tme</button>
+    <span style="display:flex;gap:8px;align-items:center">${p ? `<span class="pill" id="pill">${esc(p)}</span>` : ""}<button class="icon" data-act="sheet" aria-label="Change colors">${palette}</button></span></header>${menu}`;
+}
+function stepper(k, small){
+  const cls = small ? "sb sm" : "sb";
+  return `<button class="${cls}" data-step="-1" data-k="${k}" aria-label="Decrease">−</button>
+    <span class="val" data-val="${k}" aria-live="polite">${fmt(S.m[k])}</span>${small ? "" : `<small class="muted m" style="font-size:16px">${uLabel()}</small>`}
+    <button class="${cls}" data-step="1" data-k="${k}" aria-label="Increase">+</button>`;
+}
+const ageBadge = a => a == null ? "" : a <= 7 ? "New this week" : a <= 30 ? "New this month" : "";
+function card(x, i, src){
+  const b = src === "new" ? ageBadge(x.age) : "";
+  return `<button class="item" data-act="open" data-src="${src}" data-i="${i}">
+    ${x.img ? `<img class="ph" src="${esc(x.img)}" alt="" loading="lazy">` : `<div class="ph"></div>`}
+    ${b ? `<span class="new">${b}</span>` : ""}
+    <span class="lb" style="margin-top:4px">${esc(x.brand)}</span><span class="t">${esc(x.title)}</span>
+    <span class="row"><span class="m">$${Math.round(x.price)}</span><span class="tag">${esc(x.sizes[0])}</span></span></button>`;
+}
+function resultsBody(kind){
+  const r = S.res[kind];
+  if (S.loading[kind]) return `<p class="m muted" style="font-size:13px">Checking 14 stores for your size… the first search can take 30 seconds.</p><div class="grid">${'<div class="skel"></div>'.repeat(4)}</div>`;
+  if (S.err[kind]) return `<p class="err">${esc(S.err[kind])}</p><button class="btn ghost" data-act="retry" data-v="${kind}">Try again</button>`;
+  if (!r) return "";
+  if (!r.items.length) return `<p class="muted">Nothing in stock in your size for that. Try fewer filters.</p>`;
+  return `<p class="m muted" style="font-size:12px;margin:0 0 12px">${r.total} in your size${r.total > r.items.length ? ` · showing ${r.items.length}` : ""}${r.failed.length ? ` · couldn't reach ${esc(r.failed.join(", "))}` : ""}</p>
+    <div class="grid">${r.items.map((x, i) => card(x, i, kind)).join("")}</div>`;
+}
+
+/* ---------- views ---------- */
+const STEPS = ["about", "chest", "waist", "hips", "inseam"];
+function stepCopy(k){
+  return ({
+    chest: [S.g === "w" ? "Your bust" : "Your chest", "Around the fullest part, tape level under your arms."],
+    waist: ["Your waist", S.g === "w" ? "At your natural waist, the narrowest point." : "Where your pants usually sit. Snug, not tight."],
+    hips: ["Your hips", "Around the fullest part of your seat, feet together."],
+    inseam: ["Your inseam", "Crotch to floor, standing straight, no shoes."]
+  })[k];
+}
+function vOnboard(){
+  const k = STEPS[S.step];
+  const bars = STEPS.map((_, i) => `<span class="${i <= S.step ? "on" : ""}"></span>`).join("");
+  if (k === "about") return `${header()}
+    <div class="bars">${bars}</div>
+    <p class="lb" style="margin:14px 0 0">Step 1 of ${STEPS.length}</p>
+    <h1 class="d" style="font-size:48px;margin-top:8px">Let's get your size</h1>
+    <p class="muted" style="margin:10px 0 22px">Four measurements, then we only show clothes that come in your size. Grab a soft tape measure.</p>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div><div class="lb" style="margin-bottom:8px">Sizing</div><div class="seg"><button data-act="g" data-v="m" aria-pressed="${S.g==="m"}">Men's</button><button data-act="g" data-v="w" aria-pressed="${S.g==="w"}">Women's</button></div></div>
+      <div><div class="lb" style="margin-bottom:8px">Units</div><div class="seg"><button data-act="unit" data-v="in" aria-pressed="${S.unit==="in"}">Inches</button><button data-act="unit" data-v="cm" aria-pressed="${S.unit==="cm"}">Centimeters</button></div></div>
+    </div>
+    <div style="flex:1;min-height:30px"></div>
+    <button class="btn" data-act="next">Start</button>`;
+  S.m = S.m || {};
+  if (S.m[k] == null) S.m[k] = DEF[S.g][k];
+  const [t, h] = stepCopy(k);
+  return `${header()}
+    <div class="bars">${bars}</div>
+    <p class="lb" style="margin:14px 0 0">Step ${S.step + 1} of ${STEPS.length}</p>
+    <h1 class="d" style="font-size:48px;margin-top:8px">${t}</h1>
+    <p class="muted" style="margin:10px 0 0">${h}</p>
+    <div class="fig">${figure(k, 110, 200)}</div>
+    <div class="stepper" role="group" aria-label="${t}">${stepper(k)}</div>
+    <p class="muted" style="font-size:12px;margin:8px 0 0;text-align:center">Tap or hold − and +</p>
+    <div style="flex:1;min-height:16px"></div>
+    <div style="display:flex;gap:10px"><button class="btn ghost" data-act="back" style="width:35%">Back</button><button class="btn" data-act="next">${S.step === STEPS.length - 1 ? "See my sizes" : "Next"}</button></div>`;
+}
+function vToday(){
+  const d = new Date();
+  const day = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 864e5);
+  const q = QUOTES[day % QUOTES.length];
+  const date = d.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
+  const season = SEASONS.find(x => x[0] === nowSeason)[1].toLowerCase();
+  return `${header()}
+    <section class="quote" aria-label="Today's quote">
+      <p class="lb" style="margin:0">${esc(date)}</p>
+      <span class="qm" aria-hidden="true">“</span>
+      <blockquote>${esc(q)}</blockquote>
+      <p class="lb" style="margin:0;color:var(--hi-text,var(--gold-text))">A new note every day</p>
+    </section>
+    ${hasM() ? `<p class="lb" style="margin:22px 0 8px">Your sizes</p>
+    <div class="chips">${chipsHTML()}</div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-top:22px">
+      <button class="btn" data-act="go" data-v="new">See new ${season} arrivals</button>
+      <button class="btn ghost" data-act="go" data-v="search">Search in my size</button>
+    </div>` : `<p style="margin:22px 0 14px">Four quick measurements and FitMe only shows you clothes that come in your size.</p>
+    <button class="btn" data-act="redo">Find my size</button>`}`;
+}
+function vFit(){
+  const label = k => k === "chest" ? (S.g === "w" ? "Bust" : "Chest") : k[0].toUpperCase() + k.slice(1);
+  const call = (k, style) => `<button class="call${S.editing === k ? " open" : ""}" style="${style}" data-act="edit" data-k="${k}" aria-pressed="${S.editing === k}"><span class="lb">${label(k)}</span><span class="v"><span data-val="${k}">${fmt(S.m[k])}</span><span class="muted" style="font-size:12px"> ${uLabel()}</span></span></button>`;
+  const bar = S.editing ? `<div class="editbar"><div style="display:flex;justify-content:space-between;align-items:center"><span class="lb">Adjust ${label(S.editing).toLowerCase()}</span><button class="link" data-act="done" style="padding:0">Done</button></div><div class="stepper" role="group" aria-label="${label(S.editing)}">${stepper(S.editing)}</div></div>` : "";
+  const tiles = [["all","Everything"],["tops","Tops"],["bottoms","Bottoms"],["outerwear","Outerwear"]];
+  if (S.g === "w") tiles.push(["dresses","Dresses"]);
+  const count = c => S.byCat ? `${S.byCat[c] ?? 0} in your size` : (S.counting ? "Counting…" : "");
+  return `${header()}
+    <section class="card" aria-label="Your measurements">
+      <div style="display:flex;justify-content:space-between;align-items:baseline"><span class="lb">Your measurements</span><span class="muted" style="font-size:12px">Tap a number to adjust</span></div>
+      <div class="map">
+        ${figure(S.editing, 120, 288)}
+        ${call("chest", "left:0;top:52px")}
+        ${call("waist", "right:0;top:84px")}
+        ${call("hips", "left:0;top:124px")}
+        ${call("inseam", "right:0;top:196px")}
+      </div>
+      ${bar}
+      <div class="chips" id="chips">${chipsHTML()}</div>
+    </section>
+    <h2 class="d" style="font-size:30px;margin:28px 0 12px">Shop your size</h2>
+    <div class="tiles">
+      ${tiles.map(([c, n]) => `<button class="tile" data-act="tile" data-v="${c}"><span class="d">${n}</span><span class="m muted" style="font-size:12px">${count(c)}</span></button>`).join("")}
+      <button class="tile wide" data-act="tile" data-v="under100"><span class="d">Under $100</span><span class="m" style="font-size:12px">${count("under100")}</span></button>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:18px;flex-wrap:wrap;gap:8px"><button class="link" data-act="redo">Redo measurements</button><span style="display:flex;gap:14px"><button class="link" data-act="g" data-v="${S.g === "m" ? "w" : "m"}">${S.g === "m" ? "Women's sizes" : "Men's sizes"}</button><button class="link" data-act="unit" data-v="${S.unit === "in" ? "cm" : "in"}">${S.unit === "in" ? "Use cm" : "Use inches"}</button></span></div>`;
+}
+function vSearch(){
+  const f = S.search, r = S.res.search;
+  const cats = ["all","tops","bottoms","outerwear"].concat(S.g === "w" ? ["dresses"] : []);
+  const n = k => r && r.byStyle ? `<span class="n">${r.byStyle[k] || 0}</span>` : "";
+  return `${header()}
+    <form class="searchrow" style="margin-bottom:16px"><input id="q" type="search" placeholder="Search, e.g. linen shirt, black jeans" aria-label="Search clothes in your size" value="${esc(f.q)}"><button type="submit">Search</button></form>
+    <div class="section"><span class="lb">Category</span><div class="row-scroll">${cats.map(c => `<button class="chip" data-act="scat" data-v="${c}" aria-pressed="${f.cat === c}">${CAT_NAMES[c]}</button>`).join("")}</div></div>
+    <div class="section"><span class="lb">Style${f.styles.length ? ` · ${f.styles.length} picked` : ""}</span><div class="wrap">${STYLES.map(([k, l]) => `<button class="chip" data-act="style" data-v="${k}" aria-pressed="${f.styles.includes(k)}">${l}${n(k)}</button>`).join("")}</div></div>
+    <div class="section"><span class="lb">Price</span><div class="row-scroll">${PRICES.map(([v, l]) => `<button class="chip" data-act="price" data-v="${v}" aria-pressed="${f.max === v}">${l}</button>`).join("")}</div></div>
+    ${f.styles.length || f.max || f.q || f.cat !== "all" ? `<button class="link" data-act="clear" style="margin:-4px 0 10px">Clear filters</button>` : ""}
+    ${resultsBody("search")}`;
+}
+function vNew(){
+  const f = S.newf;
+  const cats = ["all","tops","bottoms","outerwear"].concat(S.g === "w" ? ["dresses"] : []);
+  const yr = new Date().getFullYear();
+  return `${header()}
+    <p class="lb" style="margin:0">Seasonal fits · newest first</p>
+    <h1 class="d" style="font-size:48px;margin:6px 0 14px">${SEASONS.find(s => s[0] === f.season)[1]} ${yr}</h1>
+    <div class="section"><span class="lb">Season</span><div class="row-scroll">${SEASONS.map(([k, l]) => `<button class="chip" data-act="season" data-v="${k}" aria-pressed="${f.season === k}">${l}</button>`).join("")}</div></div>
+    <div class="section"><span class="lb">Category</span><div class="row-scroll">${cats.map(c => `<button class="chip" data-act="ncat" data-v="${c}" aria-pressed="${f.cat === c}">${CAT_NAMES[c]}</button>`).join("")}</div></div>
+    ${resultsBody("new")}`;
+}
+function vDetail(){
+  const x = S.item, rows = fitRows(x);
+  const back = S.prev === "new" ? "New Arrivals" : "Search";
+  const styles = (x.styles || []).map(k => (STYLES.find(s => s[0] === k) || [k, k])[1]);
+  return `${header()}
+    <button class="link" data-act="go" data-v="${S.prev}" style="text-decoration:none;padding:0 0 10px">← ${back}</button>
+    ${x.img ? `<img class="ph" src="${esc(x.img)}" alt="${esc(x.title)}" style="aspect-ratio:4/5">` : ""}
+    <div style="display:flex;flex-direction:column;gap:12px;margin-top:16px">
+      <div><span class="lb">${esc(x.brand)}</span><h1 style="margin:4px 0 0;font-size:22px;line-height:1.25">${esc(x.title)}</h1></div>
+      <div style="display:flex;justify-content:space-between;align-items:center"><span class="m" style="font-size:22px">$${Math.round(x.price)}</span><span class="tag" style="font-size:13px;padding:4px 8px">Order ${esc(x.sizes[0])}</span></div>
+      ${styles.length ? `<div class="wrap">${styles.map(s => `<span class="chip" style="min-height:0;padding:4px 10px;font-size:12px">${s}</span>`).join("")}</div>` : ""}
+      <section class="card" aria-label="How it fits you">
+        <div class="lb" style="margin-bottom:6px">How it fits you</div>
+        ${rows.length ? rows.map(r => `<div style="margin-top:14px"><div style="display:flex;justify-content:space-between;font-size:14px"><span>${r.name}</span><span class="muted">${verdict(r)}</span></div>
+          <div class="meter" role="img" aria-label="${r.name}: ${verdict(r)}"><div class="dot" style="left:${(r.x * 100).toFixed(0)}%"></div></div>
+          <div class="scale"><span>${r.a}</span><span>Right</span><span>${r.b}</span></div></div>`).join("")
+          : `<p class="muted" style="margin:6px 0 0">One size. No fit check needed.</p>`}
+        <p class="muted" style="font-size:12px;margin:14px 0 0">Based on typical size ranges, not this exact item's chart. Check the brand's chart if you're between sizes.</p>
+      </section>
+      ${x.sizes.length > 1 ? `<p class="muted" style="font-size:13px;margin:0">Also in stock for you: ${x.sizes.slice(1).map(esc).join(", ")}</p>` : ""}
+      <a class="btn" href="${esc(x.url)}" target="_blank" rel="noopener">Shop at ${esc(x.brand)}</a>
+    </div>`;
+}
+function vSheet(){
+  return `<div class="sheet" data-act="sheet-close"><div class="sheet-in" role="dialog" aria-label="Colors">
+    <div style="display:flex;justify-content:space-between;align-items:center"><h2 class="d" style="font-size:30px">Colors</h2><button class="link" data-act="sheet-close">Close</button></div>
+    <div class="themes">${THEMES.map(([k, n, bg, ac, hi]) => `<button class="th" data-act="theme" data-v="${k}" aria-pressed="${S.theme === k}"><span class="sw" style="background:linear-gradient(135deg, ${bg} ${hi ? 34 : 50}%, ${ac} ${hi ? 34 : 50}% ${hi ? 67 : 100}%${hi ? `, ${hi} 67%` : ""})"></span>${n}</button>`).join("")}</div>
+  </div></div>`;
+}
+
+function render(){
+  const y = window.scrollY;
+  app.innerHTML = (S.view === "onboard" ? vOnboard() : S.view === "today" ? vToday() : S.view === "search" ? vSearch() : S.view === "new" ? vNew() : S.view === "detail" ? vDetail() : vFit()) + (S.sheet ? vSheet() : "");
+  if (S.keepScroll) { window.scrollTo(0, y); S.keepScroll = false; }
+  if (S.view === "fit" && hasM() && !S.byCat && !S.counting) fetchCounts();
+  if (S.view === "search" && !S.res.search && !S.loading.search && !S.err.search) fetchList("search");
+  if (S.view === "new" && !S.res.new && !S.loading.new && !S.err.new) fetchList("new");
+}
+
+/* ---------- data ---------- */
+let seq = { search: 0, new: 0, counts: 0 };
+function call(P, ok, fail){ google.script.run.withSuccessHandler(ok).withFailureHandler(fail).search(P); }
+function fetchCounts(){
+  const id = ++seq.counts; S.counting = true;
+  const P = profile(); P.cat = "all";
+  call(P, r => { if (id !== seq.counts) return; S.counting = false; S.byCat = r.byCat; if (S.view === "fit" && !S.editing) { S.keepScroll = true; render(); } },
+          () => { if (id !== seq.counts) return; S.counting = false; });
+}
+function fetchList(kind){
+  const id = ++seq[kind];
+  S.loading[kind] = true; S.err[kind] = "";
+  const P = profile();
+  if (kind === "search") { const f = S.search; P.cat = f.cat; P.q = f.q; P.styles = f.styles; P.maxPrice = f.max; }
+  else { const f = S.newf; P.cat = f.cat; P.mode = "new"; P.season = f.season; }
+  if (S.view === kind) { S.keepScroll = true; render(); }
+  call(P, r => { if (id !== seq[kind]) return; S.loading[kind] = false; S.res[kind] = r; if (S.view === kind) { S.keepScroll = true; render(); } },
+          e => { if (id !== seq[kind]) return; S.loading[kind] = false; S.err[kind] = "Couldn't reach the stores. " + (e && e.message || ""); if (S.view === kind) render(); });
+}
+function sizesChanged(){ S.byCat = null; S.res.search = null; S.res.new = null; }
+
+/* ---------- steppers with hold-to-repeat ---------- */
+let countT = null;
+function bump(k, dir){
+  const [lo, hi] = LIM[k];
+  let v = S.m[k] ?? DEF[S.g][k];
+  if (S.unit === "in") v = Math.round((v + dir * 0.5) * 2) / 2;
+  else v = (Math.round(v * 2.54) + dir) / 2.54;
+  S.m[k] = Math.max(lo, Math.min(hi, v)); save();
+  document.querySelectorAll(`[data-val="${k}"]`).forEach(e => e.textContent = fmt(S.m[k]));
+  const ch = document.getElementById("chips"); if (ch) ch.innerHTML = chipsHTML();
+  const pl = document.getElementById("pill"); if (pl) pl.textContent = pillText();
+  sizesChanged();
+  if (S.view === "fit") { clearTimeout(countT); countT = setTimeout(fetchCounts, 1200); }
+}
+let holdT = null, holdI = null;
+const stopHold = () => { clearTimeout(holdT); clearInterval(holdI); holdT = holdI = null; };
+app.addEventListener("pointerdown", e => {
+  const b = e.target.closest("[data-step]"); if (!b) return;
+  e.preventDefault(); stopHold();
+  const k = b.dataset.k, d = +b.dataset.step;
+  bump(k, d);
+  holdT = setTimeout(() => { holdI = setInterval(() => bump(k, d), 90); }, 380);
+});
+["pointerup", "pointercancel", "pointerleave"].forEach(t => document.addEventListener(t, stopHold));
+
+/* ---------- events ---------- */
+function go(v){ S.view = v; S.editing = null; render(); window.scrollTo(0, 0); }
+app.addEventListener("click", e => {
+  const st = e.target.closest("[data-step]");
+  if (st) { if (e.detail === 0) bump(st.dataset.k, +st.dataset.step); return; } // keyboard
+  const b = e.target.closest("[data-act]"); if (!b) return;
+  const a = b.dataset.act, v = b.dataset.v;
+  if (a === "sheet-close" && e.target !== b && !e.target.closest(".link")) return;
+  if (a === "go") { if (hasM() || v === "today") go(v); else { S.step = 0; go("onboard"); } }
+  else if (a === "sheet") { S.sheet = true; S.keepScroll = true; render(); }
+  else if (a === "sheet-close") { S.sheet = false; S.keepScroll = true; render(); }
+  else if (a === "theme") { S.theme = v; LS.set("fm_theme2", v); document.documentElement.dataset.theme = v; S.keepScroll = true; render(); }
+  else if (a === "g") { S.g = v; save(); sizesChanged(); S.search.styles = []; render(); }
+  else if (a === "unit") { S.unit = v; save(); render(); }
+  else if (a === "next") {
+    if (S.step < STEPS.length - 1) { S.step++; render(); }
+    else { sizesChanged(); go("today"); }
+  }
+  else if (a === "back") { if (S.step > 0) { S.step--; render(); } }
+  else if (a === "edit") { S.editing = S.editing === b.dataset.k ? null : b.dataset.k; S.keepScroll = true; render(); }
+  else if (a === "done") { S.editing = null; S.keepScroll = true; render(); }
+  else if (a === "tile") {
+    Object.assign(S.search, { cat: v === "under100" ? "all" : v, max: v === "under100" ? 100 : 0, styles: [], q: "" });
+    S.res.search = null; go("search");
+  }
+  else if (a === "scat") { S.search.cat = v; fetchList("search"); }
+  else if (a === "style") { const s = S.search.styles, i = s.indexOf(v); i < 0 ? s.push(v) : s.splice(i, 1); fetchList("search"); }
+  else if (a === "price") { S.search.max = +v; fetchList("search"); }
+  else if (a === "clear") { Object.assign(S.search, { cat: "all", q: "", styles: [], max: 0 }); fetchList("search"); }
+  else if (a === "season") { S.newf.season = v; fetchList("new"); }
+  else if (a === "ncat") { S.newf.cat = v; fetchList("new"); }
+  else if (a === "retry") { fetchList(v); }
+  else if (a === "open") { const src = b.dataset.src; S.item = S.res[src].items[+b.dataset.i]; S.prev = src; go("detail"); }
+  else if (a === "redo") { S.step = 0; go("onboard"); }
+});
+app.addEventListener("submit", e => {
+  e.preventDefault();
+  S.search.q = document.getElementById("q").value.trim();
+  fetchList("search");
+});
+
+render();
+</script>
+</body>
+</html>
