@@ -75,6 +75,13 @@ a{color:var(--gold-text)}
 .steps{display:flex;gap:6px;margin-top:8px}
 .steps span{flex:1;height:4px;border-radius:2px;background:var(--line)}
 .steps span.on{background:var(--hi-text,var(--gold-text))}
+.looks{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px}
+.look{border:1px solid var(--line);border-radius:2px;overflow:hidden;background:var(--raise);display:flex;flex-direction:column}
+.look>img{width:100%;aspect-ratio:4/5;object-fit:cover;display:block;background:var(--line)}
+.look .lk-b{padding:8px 10px 10px;display:flex;flex-direction:column;gap:4px;flex:1}
+.look .lk-p{font-size:12px;line-height:1.3;display:flex;justify-content:space-between;gap:6px}
+.look .lk-p a{font-weight:700;white-space:nowrap}
+.look .lk-x{display:flex;justify-content:space-between;margin-top:auto;padding-top:6px}
 
 /* today */
 .quote{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:26px 22px 22px}
@@ -222,7 +229,7 @@ const S = {
   byCat: null, counting: false, item: null,
   search: { cat: "all", q: "", styles: [], max: 0 },
   newf: { season: nowSeason, cat: "all" },
-  photo: LS.get("fm_photo"), tries: {}, outfit: LS.get("fm_outfit") || [], ofit: {}, prevOut: "search",
+  photo: LS.get("fm_photo"), tries: {}, outfit: LS.get("fm_outfit") || [], looks: LS.get("fm_looks") || [], ofit: {}, prevOut: "search",
   res: { search: null, new: null }, loading: { search: false, new: false }, err: { search: "", new: "" }
 };
 const save = () => LS.set("fm_state", { g: S.g, unit: S.unit, m: S.m });
@@ -656,18 +663,67 @@ async function tryOutfit(){
       if (i < pieces.length - 1) person = await urlToData(url);
     }
     S.ofit = { status: "done", img: url };
+    await saveLook(url, pieces);
   } catch (e) {
     S.ofit = { status: "error", err: (e && e.message) || "Something went wrong. Try again." };
   }
   if (S.view === "outfit") { S.keepScroll = true; render(); }
 }
 function outfitBar(){
-  if (!S.outfit.length || S.view === "outfit" || S.view === "onboard" || S.sheet) return "";
+  if (S.view === "outfit" || S.view === "onboard" || S.sheet) return "";
+  if (!S.outfit.length) return S.looks.length ? `<div class="obar" role="region" aria-label="Past outfits"><div class="obar-in">
+    ${S.looks.slice(0, 3).map(l => `<img src="${esc(l.img)}" alt="" onerror="this.style.visibility='hidden'">`).join("")}
+    <span style="font-size:13px"><b>Past outfits</b><br><span class="m">${S.looks.length} saved</span></span>
+    <button data-act="go" data-v="outfit">View</button></div></div>` : "";
   const total = S.outfit.reduce((t, o) => t + (o.price || 0), 0);
   return `<div class="obar" role="region" aria-label="Your outfit"><div class="obar-in">
     ${orderedOutfit().map(o => o.img ? `<img src="${esc(o.img)}" alt="">` : "").join("")}
     <span style="font-size:13px"><b>${S.outfit.length} ${S.outfit.length === 1 ? "piece" : "pieces"}</b><br><span class="m">$${Math.round(total)}</span></span>
     <button data-act="go" data-v="outfit">View outfit</button></div></div>`;
+}
+/* ---------- saved outfits: newest first, keep 4, oldest drops off ---------- */
+const MAX_LOOKS = 4;
+async function shrinkImage(u){
+  const data = await urlToData(u);
+  const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = data; });
+  const w = Math.min(640, img.naturalWidth), h = Math.round(img.naturalHeight * w / img.naturalWidth);
+  const c = document.createElement("canvas"); c.width = w; c.height = h;
+  c.getContext("2d").drawImage(img, 0, 0, w, h);
+  return c.toDataURL("image/jpeg", 0.8);
+}
+function storeLooks(){
+  // keep the image copies if they fit; otherwise fall back to links, then drop the oldest
+  for (let n = S.looks.length; n > 0; n--) {
+    const list = S.looks.slice(0, n);
+    try { localStorage.setItem("fm_looks", JSON.stringify(list)); S.looks = list; return; } catch (e) {}
+    try { localStorage.setItem("fm_looks", JSON.stringify(list.map(l => ({ ...l, img: l.src })))); S.looks = list; return; } catch (e) {}
+  }
+}
+async function saveLook(url, pieces){
+  let img = url;
+  try { img = await shrinkImage(url); } catch (e) {}
+  const look = { id: Date.now(), at: new Date().toISOString(), img: img, src: url,
+    pieces: pieces.map(x => ({ brand: x.brand, title: x.title, img: x.img, price: x.price, sizes: x.sizes, cat: x.cat, url: x.url })) };
+  S.looks = [look, ...S.looks].slice(0, MAX_LOOKS);
+  storeLooks();
+}
+function deleteLook(id){ S.looks = S.looks.filter(l => String(l.id) !== String(id)); storeLooks(); if (!S.looks.length) LS.set("fm_looks", []); }
+function wearLook(id){
+  const l = S.looks.find(l => String(l.id) === String(id)); if (!l) return;
+  S.outfit = l.pieces.map(x => ({ ...x })); saveOutfit();
+  S.ofit = { status: "done", img: l.img };
+}
+function looksSection(){
+  if (!S.looks.length) return "";
+  const when = iso => { const d = new Date(iso); return d.toLocaleDateString(undefined, { month: "short", day: "numeric" }); };
+  return `<h2 class="lb" style="margin:34px 0 0;display:block">Past outfits <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500">· last ${MAX_LOOKS} kept</span></h2>
+    <div class="looks">${S.looks.map(l => {
+      const total = l.pieces.reduce((t, x) => t + (x.price || 0), 0);
+      return `<div class="look"><img src="${esc(l.img)}" alt="Saved outfit from ${esc(when(l.at))}" loading="lazy" onerror="this.style.visibility='hidden'">
+        <div class="lk-b"><span class="small">${esc(when(l.at))} · $${Math.round(total)}</span>
+        ${l.pieces.map(x => `<div class="lk-p"><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><b>${esc(x.brand)}</b> ${esc(x.title)} · ${esc(x.sizes[0])}</span><a href="${esc(x.url)}" target="_blank" rel="noopener">Shop</a></div>`).join("")}
+        <div class="lk-x"><button class="link" data-act="lwear" data-v="${l.id}" style="padding:0;font-size:12px;font-weight:700">Wear again</button><button class="link" data-act="ldel" data-v="${l.id}" style="padding:0;font-size:12px">Delete</button></div></div></div>`;
+    }).join("")}</div>`;
 }
 function vOutfit(){
   const pieces = orderedOutfit(), o = S.ofit || {};
@@ -676,7 +732,7 @@ function vOutfit(){
   if (!pieces.length) return `${header()}
     <h1 class="d" style="font-size:44px;margin-bottom:10px">Your outfit</h1>
     <p class="muted">Add a top, bottoms and a jacket from any product page, then see the whole look on you.</p>
-    <button class="btn" data-act="go" data-v="search" style="margin-top:14px">Find pieces</button>`;
+    <button class="btn" data-act="go" data-v="search" style="margin-top:14px">Find pieces</button>${looksSection()}`;
   return `${header()}
     <button class="link" data-act="go" data-v="${S.prevOut === "detail" ? "detail" : S.prevOut}" style="text-decoration:none;padding:0 0 6px">← ${back}</button>
     <h1 class="d" style="font-size:44px;margin-bottom:6px">Your outfit</h1>
@@ -693,7 +749,7 @@ function vOutfit(){
     <div style="margin-top:14px">${S.photo
       ? `<button class="btn pink" data-act="tryoutfit" ${o.status === "loading" ? "disabled" : ""}>${o.status === "done" ? "See it on me again" : "See it on me"}</button>`
       : `<label class="btn pink filebtn">Add your photo to see it on you<input type="file" accept="image/*" data-photo="outfit"></label>`}</div>
-    <p class="small" style="margin-top:10px">Pieces go on one at a time: bottoms, then top, then jacket. Each piece counts as one try-on.</p>`;
+    <p class="small" style="margin-top:10px">Pieces go on one at a time: bottoms, then top, then jacket. Each piece counts as one try-on.</p>${looksSection()}`;
 }
 app.addEventListener("change", async e => {
   const inp = e.target.closest("input[data-photo]"); if (!inp || !inp.files || !inp.files[0]) return;
@@ -743,6 +799,8 @@ app.addEventListener("click", e => {
   else if (a === "orm") { removeFromOutfit(S.item.url); S.keepScroll = true; render(); }
   else if (a === "ormv") { removeFromOutfit(v); S.keepScroll = true; render(); }
   else if (a === "tryoutfit") { tryOutfit(); }
+  else if (a === "lwear") { wearLook(v); render(); window.scrollTo(0, 0); }
+  else if (a === "ldel") { deleteLook(v); S.keepScroll = true; render(); }
   else if (a === "tryon") { if (S.item && S.photo) tryOn(S.item); }
   else if (a === "tview") { const t = S.tries[S.item.url]; if (t) { t.view = v; S.keepScroll = true; render(); } }
   else if (a === "rmphoto") { S.photo = null; try { localStorage.removeItem("fm_photo"); } catch (err) {} S.keepScroll = true; render(); }
