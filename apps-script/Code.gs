@@ -26,7 +26,10 @@ function doGet(e) {
     try { P = JSON.parse(e.parameter.p || '{}'); } catch (err) {}
     let out;
     try { out = search(P); } catch (err) { out = { error: String(err && err.message || err) }; }
-    return ContentService.createTextOutput(JSON.stringify(out)).setMimeType(ContentService.MimeType.JSON);
+    return json_(out);
+  }
+  if (e && e.parameter && e.parameter.api === 'tryon_status') {
+    return json_(tryOnCheck_(e.parameter.s, e.parameter.r));
   }
   return HtmlService.createHtmlOutputFromFile('Index')
     .setTitle('FitMe')
@@ -282,4 +285,66 @@ function testSearch() {
     console.log(g + ' new fall: ' + n.total + ' | newest: ' + n.items.slice(0, 3).map(x => x.brand + ' ' + x.title + ' (' + x.age + 'd)').join('; '));
     r.items.slice(0, 6).forEach(x => console.log('  ' + x.brand + ' | ' + x.title + ' | $' + x.price + ' | ' + x.sizes.join(', ')));
   });
+}
+
+
+/* ---------- photo try-on (FASHN v1.6 via fal.ai) ----------
+ * Setup: Project Settings > Script Properties > add FAL_KEY = your fal.ai API key.
+ * Optional: TRYON_DAILY_CAP (default 300 try-ons per day across all users).
+ */
+const FAL_TRYON = 'https://queue.fal.run/fal-ai/fashn/tryon/v1.6';
+
+function json_(o) {
+  return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);
+}
+
+function doPost(e) {
+  let body = {};
+  try { body = JSON.parse((e && e.postData && e.postData.contents) || '{}'); } catch (err) {}
+  if (body.api === 'tryon') return json_(tryOnStart_(body));
+  return json_({ error: 'Unknown request.' });
+}
+
+function tryOnStart_(b) {
+  const props = PropertiesService.getScriptProperties();
+  const key = props.getProperty('FAL_KEY');
+  if (!key) return { error: "Try-on isn't switched on yet." };
+  const person = String(b.person || ''), garment = String(b.garment || '');
+  if (!/^data:image\/(jpeg|jpg|png|webp);base64,/.test(person) || person.length > 4e6) return { error: 'Your photo could not be read. Try a different photo.' };
+  if (!/^https:\/\//.test(garment)) return { error: 'This item has no photo to try on.' };
+  const cats = { tops: 'tops', outerwear: 'tops', bottoms: 'bottoms', dresses: 'one-pieces' };
+  // daily spending cap across all visitors
+  const lock = LockService.getScriptLock();
+  try { lock.waitLock(5000); } catch (err) { return { error: 'Busy right now. Try again in a moment.' }; }
+  try {
+    const day = 'tryon_' + Utilities.formatDate(new Date(), 'UTC', 'yyyyMMdd');
+    const used = +(props.getProperty(day) || 0), cap = +(props.getProperty('TRYON_DAILY_CAP') || 300);
+    if (used >= cap) return { error: "Today's try-on limit is reached. Try again tomorrow." };
+    props.setProperty(day, String(used + 1));
+  } finally { lock.releaseLock(); }
+  const res = UrlFetchApp.fetch(FAL_TRYON, {
+    method: 'post', contentType: 'application/json', muteHttpExceptions: true,
+    headers: { Authorization: 'Key ' + key },
+    payload: JSON.stringify({ model_image: person, garment_image: garment, category: cats[b.category] || 'auto',
+      mode: 'balanced', garment_photo_type: 'auto', moderation_level: 'permissive', output_format: 'jpeg' })
+  });
+  if (res.getResponseCode() >= 300) return { error: 'The try-on service said no (' + res.getResponseCode() + '). Try again.' };
+  const j = JSON.parse(res.getContentText());
+  return { status: j.status_url, result: j.response_url };
+}
+
+function tryOnCheck_(statusUrl, resultUrl) {
+  const key = PropertiesService.getScriptProperties().getProperty('FAL_KEY');
+  const ok = u => /^https:\/\/queue\.fal\.run\//.test(String(u || ''));
+  if (!key || !ok(statusUrl) || !ok(resultUrl)) return { error: 'Bad request.' };
+  const h = { headers: { Authorization: 'Key ' + key }, muteHttpExceptions: true };
+  const s = UrlFetchApp.fetch(statusUrl, h);
+  if (s.getResponseCode() >= 300 && s.getResponseCode() !== 202) return { error: 'Lost track of this try-on. Try again.' };
+  const st = JSON.parse(s.getContentText() || '{}').status;
+  if (st !== 'COMPLETED') return { done: false, status: st || 'IN_QUEUE' };
+  const r = UrlFetchApp.fetch(resultUrl, h);
+  const j = JSON.parse(r.getContentText() || '{}');
+  const url = j.images && j.images[0] && j.images[0].url;
+  if (!url) return { error: (j.detail && (j.detail[0] && j.detail[0].msg || j.detail)) ? 'The photo was not accepted. Try a clear full-body photo.' : 'No image came back. Try again.' };
+  return { done: true, url: url };
 }
