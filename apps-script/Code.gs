@@ -328,7 +328,10 @@ function tryOnStart_(b) {
     payload: JSON.stringify({ model_image: person, garment_image: garment, category: cats[b.category] || 'auto',
       mode: 'balanced', garment_photo_type: 'auto', moderation_level: 'permissive', output_format: 'jpeg' })
   });
-  if (res.getResponseCode() >= 300) return { error: 'The try-on service said no (' + res.getResponseCode() + '). Try again.' };
+  if (res.getResponseCode() >= 300) {
+    let why = ''; try { const d = JSON.parse(res.getContentText()); why = String(d.detail && (d.detail.msg || d.detail[0] && d.detail[0].msg || d.detail) || d.message || '').slice(0, 160); } catch (err) { why = res.getContentText().slice(0, 160); }
+    return { error: 'The try-on service said no (' + res.getResponseCode() + (why ? ': ' + why : '') + ').' };
+  }
   const j = JSON.parse(res.getContentText());
   return { status: j.status_url, result: j.response_url };
 }
